@@ -10,6 +10,7 @@ import {store} from '~/src/store/store'
 import createEmotionCache from '~/src/utils/create-emotion-cache'
 import Layout from '~/src/layouts/default'
 
+import 'tailwindcss/tailwind.css'
 import '~/src/styles/globals.css'
 import '~/src/styles/toastify.css'
 
