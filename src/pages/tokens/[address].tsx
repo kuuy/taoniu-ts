@@ -37,37 +37,15 @@ import TokenLiquidity from '~/src/components/TokenLiquidity'
 import getTokenPairs from '~/src/lib/zilstream/getTokenPairs'
 import { Pair } from '~/src/types/pair'
 import { ZIL_ADDRESS } from '~/src/constants'
-import { useRouter } from 'next/router'
+import { useParams } from 'next/navigation'
 
 const TVChartContainer = dynamic(() => import('~/src/components/TVChartContainer'), {
   ssr: false,
 });
 
-export const getServerSideProps = async (
-  context: GetServerSidePropsContext
-) => {
-  const { address } = context.query;
-
-  var fetchedToken: Token | null = null;
-
-  try {
-    fetchedToken = await getToken(address as string);
-  } catch {
-    fetchedToken = null;
-  }
-
-  return {
-    props: {
-      fetchedToken,
-    },
-  };
-};
-
-function TokenDetail({
-  fetchedToken,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const router = useRouter();
-  const { address } = router.query;
+function TokenDetail() {
+  const params = useParams()
+  const { address } = params || {}
   const { theme, setTheme, resolvedTheme } = useTheme();
   const tokenState = useSelector((state) => state.token);
   const currencyState = useSelector(
@@ -75,10 +53,10 @@ function TokenDetail({
   );
   const selectedCurrency: Currency = currencyState.currencies.find(
     (currency) => currency.code === currencyState.selectedCurrency
-  )!;
+  )!
   const [pairs, setPairs] = useState<Pair[]>([]);
   const [totalVolume, setTotalVolume] = useState<number>(0);
-  const [token, setToken] = useState<Token | null>(fetchedToken);
+  const [token, setToken] = useState<Token | null>(null);
 
   useEffect(() => {
     const fetchToken = async () => {
@@ -89,7 +67,7 @@ function TokenDetail({
     if (!token) {
       fetchToken();
     }
-  }, []);
+  }, [])
 
   const { athChangePercentage, atlChangePercentage } = React.useMemo(() => {
     if (!token) return { athChangePercentage: 0, atlChangePercentage: 0 };
@@ -100,8 +78,6 @@ function TokenDetail({
         (token.market_data.rate_zil / token.market_data.atl_zil - 1) * 100,
     };
   }, [token, tokenState.tokens]);
-
-  useEffect(() => {}, []);
 
   useEffect(() => {
     const fetchPairs = async () => {

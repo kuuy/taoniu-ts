@@ -1,5 +1,4 @@
 import TokenIcon from '~/src/components/TokenIcon'
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
@@ -13,44 +12,22 @@ import { Link as WebLink } from 'react-feather'
 import CopyableAddress from '~/src/components/CopyableAddress'
 import EmptyRow from '~/src/components/EmptyRow'
 import { ZIL_ADDRESS } from '~/src/constants'
-import { useRouter } from 'next/router'
+import { useParams } from 'next/navigation'
 
-export const getServerSideProps = async (
-  context: GetServerSidePropsContext
-) => {
-  const { slug } = context.query;
-
-  var fetchedExchange: Exchange | null = null;
-
-  try {
-    fetchedExchange = await getExchange(slug as string);
-  } catch {
-    fetchedExchange = null;
-  }
-
-  return {
-    props: {
-      fetchedExchange,
-    },
-  };
-};
-
-const ExchangeDetail = ({
-  fetchedExchange,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) => {
-  const router = useRouter();
-  const { slug } = router.query;
+const ExchangeDetail = () => {
+  const params = useParams()
+  const { slug } = params || {}
   const tokenState = useSelector((state) => state.token);
   const currencyState = useSelector(
     (state) => state.currency
-  );
+  )
   const selectedCurrency: Currency = currencyState.currencies.find(
     (currency) => currency.code === currencyState.selectedCurrency
-  )!;
+  )!
   const [pairs, setPairs] = useState<Pair[]>([]);
   const [totalVolume, setTotalVolume] = useState<number>(0);
   const [totalLiquidity, setTotalLiquidity] = useState<number>(0);
-  const [exchange, setExchange] = useState<Exchange | null>(fetchedExchange);
+  const [exchange, setExchange] = useState<Exchange | null>(null);
 
   useEffect(() => {
     const fetchExchange = async () => {
@@ -58,9 +35,7 @@ const ExchangeDetail = ({
       setExchange(fetchedExchange);
     };
 
-    if (!exchange) {
-      fetchExchange();
-    }
+    fetchExchange()
   }, []);
 
   useEffect(() => {

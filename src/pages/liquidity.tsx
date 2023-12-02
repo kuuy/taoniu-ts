@@ -1,33 +1,30 @@
-import BigNumber from 'bignumber.js'
-import CopyableAddress from '~/src/components/CopyableAddress'
 import TokenIcon from '~/src/components/TokenIcon'
-import TVLChartBlock from '~/src/components/TVLChartBlock'
-import VolumeChartBlock from '~/src/components/VolumeChartBlock'
 import getStats from '~/src/lib/zilstream/getStats'
-import { InferGetServerSidePropsType } from 'next'
-import { useRouter } from 'next/router'
+import { useSearchParams } from 'next/navigation'
 import Head from 'next/head'
 import Link from 'next/link'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSelector } from '~/src/store/store'
 import { Token } from '~/src/types/token'
 import { cryptoFormat, currencyFormat, numberFormat } from '~/src/utils/format'
+import {Stats,StatsToken} from '~/src/types/stats'
 
-export const getServerSideProps = async () => {
-  const stats = await getStats()
+const Liquidity = () => {
+  const searchParams = useSearchParams()
+  const rewards = searchParams?.get('rewards') ?? ''
+  const edit = searchParams?.get('edit') ?? ''
 
-  return {
-    props: {
-      stats,
+  const [stats, setStats] = useState<Stats | null>(null)
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const stats = await getStats()
+      setStats(stats);
     }
-  }
-}
+    fetchStats()
+  }, [])
 
-const Liquidity = ({ stats }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
-  const router = useRouter()
-  const { rewards, edit } = router.query
-
-  const tokens: any[] = stats.tokens.filter((token: any) => token.liquidity > 0)
+  const tokens: StatsToken[] = stats !== null ? stats.tokens.filter((token: any) => token.liquidity > 0) : []
   const tokenState = useSelector(state => state.token)
 
   const zwapTokens = tokenState.tokens.filter(token => token.symbol === 'ZWAP')

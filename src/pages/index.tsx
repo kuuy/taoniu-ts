@@ -25,11 +25,9 @@ import Customize from '~/src/components/Customization'
 import Filters from '~/src/components/Filters'
 import SponsorBlock from '~/src/components/SponsorBlock'
 import {useDispatch} from '~/src/store/store'
-import { default as tokenThunks} from '~/src/thunks/token'
 import {toBigNumber} from '~/src/utils/useMoneyFormatter'
 
 function Home() {
-  const dispatch = useDispatch()
   const [rates, setRates] = useState<Rate[]>([])
   const tokenState = useSelector((state) => state.token)
   const currencyState = useSelector((state) => state.currency)

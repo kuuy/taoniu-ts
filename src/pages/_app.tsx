@@ -6,13 +6,12 @@ import { Provider as ReduxProvider } from 'react-redux'
 
 import {CacheProvider} from '@emotion/react'
 
+import {store} from '~/src/store/store'
 import createEmotionCache from '~/src/utils/create-emotion-cache'
+import Layout from '~/src/layouts/default'
 
 import '~/src/styles/globals.css'
 import '~/src/styles/toastify.css'
-
-import {store} from '~/src/store/store'
-import Layout from '~/src/layouts/default'
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode
