@@ -15,7 +15,7 @@ export interface ChartDataPoint {
 }
 
 export const Chart = (props: Partial<Props>) => {
-  const ref = useRef<HTMLDivElement>() as React.MutableRefObject<HTMLInputElement>
+  const ref = useRef<HTMLDivElement | null>(null)
   const [chart, setChart] = useState<IChartApi|null>(null)
   const [series, setSeries] = useState<ISeriesApi<'Area'>|null>(null)
   const {resolvedTheme} = useTheme()
