@@ -89,8 +89,16 @@ export const Chart = (props: Partial<Props>) => {
     series.setData(data)
     chart.timeScale().fitContent()
 
+    function resize() {
+      if(ref.current) {
+        chart.resize(ref.current.clientWidth, ref.current.clientHeight)
+      }
+    }
+    window.addEventListener('resize', resize)
+
     return () => {
       chart.remove()
+      window.removeEventListener('resize', resize)
     }
   }, [props])
 
