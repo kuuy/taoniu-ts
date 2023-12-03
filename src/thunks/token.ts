@@ -4,7 +4,6 @@ import {slice} from '~/src/slices/token'
 
 const initial = (): AppThunk => async (dispatch): Promise<void> => {
   const tokens = await getTokens()
-  console.log('token initial process', tokens.length)
   dispatch(slice.actions.initial(tokens))
 }
 

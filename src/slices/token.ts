@@ -14,7 +14,6 @@ const reducers = {
     const tokens = action.payload
     state.initialized = true
     state.tokens = tokens
-    console.log('token initial', tokens)
   },
 }
 

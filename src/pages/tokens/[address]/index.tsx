@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
 import { currencyFormat, numberFormat, cryptoFormat } from '~/src/utils/format'
 import {
   Link as WebLink,
@@ -19,7 +18,6 @@ import Score from '~/src/components/Score'
 import { ResolutionString } from '~/public/charting_library'
 import { useTheme } from 'next-themes'
 import { useSelector } from '~/src/store/store'
-import {Currency} from '~/src/types/currency'
 import {Reward, Token} from '~/src/types/token'
 import dayjs from 'dayjs'
 import Link from 'next/link'
@@ -41,28 +39,30 @@ import { useParams } from 'next/navigation'
 
 const TVChartContainer = dynamic(() => import('~/src/components/TVChartContainer'), {
   ssr: false,
-});
+})
 
 function TokenDetail() {
   const params = useParams()
   const { address } = params || {}
   const { theme, setTheme, resolvedTheme } = useTheme();
   const tokenState = useSelector((state) => state.token);
-  const currencyState = useSelector(
-    (state) => state.currency
-  );
-  const selectedCurrency: Currency = currencyState.currencies.find(
+  const currencyState = useSelector((state) => state.currency)
+  const selectedCurrency = currencyState.currencies.find(
     (currency) => currency.code === currencyState.selectedCurrency
   )!
-  const [pairs, setPairs] = useState<Pair[]>([]);
+  const [pairs, setPairs] = useState<Pair[]>([])
   const [totalVolume, setTotalVolume] = useState<number>(0);
   const [token, setToken] = useState<Token | null>(null);
 
   useEffect(() => {
+    if (address === undefined) {
+      console.log('address', address)
+      return
+    }
     const fetchToken = async () => {
-      const newToken = await getToken(address as string);
+      const newToken = await getToken(address as string)
       setToken(newToken);
-    };
+    }
 
     if (!token) {
       fetchToken();

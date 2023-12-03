@@ -4,7 +4,7 @@ import { Token } from '~/src/types/token'
 import getTokenTVL from '~/src/lib/zilstream/getTokenTVL'
 
 const Chart = dynamic(
-  () => import('~/src/components/Chart'),
+  () => import('~/src/components/Chart').then((mod) => mod.Chart),
   { ssr: false }
 )
 

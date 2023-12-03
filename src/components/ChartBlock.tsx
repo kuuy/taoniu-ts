@@ -5,7 +5,7 @@ import { Token } from '~/src/types/token'
 import InlineChange from './InlineChange'
 
 const Chart = dynamic(
-  () => import('~/src/components/Chart'),
+  () => import('~/src/components/Chart').then((mod) => mod.Chart),
   { ssr: false }
 )
 

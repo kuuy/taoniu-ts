@@ -7,7 +7,7 @@ import { cryptoFormat, currencyFormat } from '~/src/utils/format'
 import InlineChange from './InlineChange'
 
 const Chart = dynamic(
-  () => import('~/src/components/Chart'),
+  () => import('~/src/components/Chart').then((mod) => mod.Chart),
   { ssr: false }
 )
 
@@ -38,7 +38,7 @@ const VolumeChartBlock = (props: Props) => {
     } catch(err) {
       // console.log(err)
     }
-    
+
   }
 
   const firstRate = tvl.length > 0 ? tvl[0].value : 0

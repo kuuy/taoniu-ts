@@ -14,7 +14,7 @@ import {MainnetNode} from '~/src/utils/mainnetNode'
 import {NftCollection} from '~/src/types/collection'
 
 const Chart = dynamic(
-  () => import('~/src/components/Chart'),
+  () => import('~/src/components/Chart').then((mod) => mod.Chart),
   { ssr: false }
 )
 

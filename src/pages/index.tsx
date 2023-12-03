@@ -2,12 +2,13 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { Star, Triangle } from 'react-feather'
-import { useSelector } from '~/src/store/store'
+import { useDispatch, useSelector } from '~/src/store/store'
 
 import getRates from '~/src/lib/zilstream/getRates'
 
 import {Currency} from '~/src/types/currency'
 import {Token} from '~/src/types/token'
+import {default as tokenThunks}  from '~/src/thunks/token'
 import { ListType } from '~/src/types/list'
 import { SortType, SortDirection } from '~/src/types/list'
 import { Rate } from '~/src/types/rate'
@@ -24,10 +25,10 @@ import VolumeChartBlock from '~/src/components/VolumeChartBlock'
 import Customize from '~/src/components/Customization'
 import Filters from '~/src/components/Filters'
 import SponsorBlock from '~/src/components/SponsorBlock'
-import {useDispatch} from '~/src/store/store'
 import {toBigNumber} from '~/src/utils/useMoneyFormatter'
 
 function Home() {
+  const dispatch = useDispatch()
   const [rates, setRates] = useState<Rate[]>([])
   const tokenState = useSelector((state) => state.token)
   const currencyState = useSelector((state) => state.currency)
@@ -35,15 +36,12 @@ function Home() {
   const [displayedTokens, setDisplayedTokens] = useState<Token[]>([])
   const [currentList, setCurrentList] = useState<ListType>(ListType.Ranking)
   const [currentSort, setCurrentSort] = useState<SortType>(SortType.Default)
-  const [currentSortDirection, setCurrentSortDirection] =
-    useState<SortDirection>(SortDirection.Ascending)
+  const [currentSortDirection, setCurrentSortDirection] = useState<SortDirection>(SortDirection.Ascending)
 
-  const tokens = useMemo(() => {
+  useEffect(() => {
     if (!tokenState.initialized) {
-      // dispatch(tokenThunks.initial())
-      return []
+      dispatch(tokenThunks.initial())
     }
-    return tokenState.tokens
   }, [tokenState])
 
   const marketCap = tokenState.tokens.reduce((sum: number, current: Token) => {
@@ -54,7 +52,7 @@ function Home() {
     return sum + current.market_data.daily_volume_zil;
   }, 0);
 
-  const zilToken = tokens.filter((token: Token) => token.symbol == "ZIL")[0];
+  const zilToken = tokenState.tokens.filter((token: Token) => token.symbol == "ZIL")[0];
   const selectedCurrency: Currency = currencyState.currencies.find(
     (currency: Currency) => currency.code === currencyState.selectedCurrency
   )!;
@@ -76,10 +74,10 @@ function Home() {
   }, 30000);
 
   useEffect(() => {
-    fetchRates();
-  }, []);
+    fetchRates()
+  }, [])
 
-  const aprTokens = tokens
+  const aprTokens = tokenState.tokens
     .filter((token: Token) => token.reviewed === true || token.address === ZIL_ADDRESS)
     .sort((a: Token, b: Token) => {
       if (!a.apr || !b.apr) return -1;
@@ -108,22 +106,24 @@ function Home() {
   useEffect(() => {
     if (!tokenState.initialized) return;
 
-    var tokensToDisplay = tokens;
+    let tokensToDisplay: Token[]
 
     if (currentList == ListType.Favorites) {
-      tokensToDisplay = tokensToDisplay.filter((token: Token) => token.isFavorited);
+      tokensToDisplay = tokenState.tokens.filter((token: Token) => token.isFavorited);
     } else if (currentList == ListType.DeFi) {
-      tokensToDisplay = tokensToDisplay.filter((token: Token) =>
+      tokensToDisplay = tokenState.tokens.filter((token: Token) =>
         token.tags?.split(",").includes("defi")
       );
     } else if (currentList == ListType.NFT) {
-      tokensToDisplay = tokensToDisplay.filter((token: Token) =>
+      tokensToDisplay = tokenState.tokens.filter((token: Token) =>
         token.tags?.split(",").includes("nft")
-      );
+      )
     } else if (currentList == ListType.Creators) {
-      tokensToDisplay = tokensToDisplay.filter((token: Token) =>
+      tokensToDisplay = tokenState.tokens.filter((token: Token) =>
         token.tags?.split(",").includes("creator")
-      );
+      )
+    } else {
+      tokensToDisplay = [...tokenState.tokens]
     }
 
     if (currentSort === SortType.APR || currentSort === SortType.APY) {
@@ -133,14 +133,17 @@ function Home() {
           return toBigNumber(a.apr??0).isGreaterThan(b.apr??0) ? 1 : -1;
         }
         return toBigNumber(a.apr??0).isLessThan(b.apr??0) ? 1 : -1;
-      });
+      })
     } else if (currentSort === SortType.Default) {
       tokensToDisplay.sort((a: Token, b: Token) => {
-        if (currentSortDirection == SortDirection.Ascending) {
-          return a.rank > b.rank ? 1 : -1;
-        }
-        return a.rank < b.rank ? 1 : -1;
-      });
+        return 0
+      })
+      // tokensToDisplay.sort((a: Token, b: Token) => {
+      //   if (currentSortDirection == SortDirection.Ascending) {
+      //     return a.rank > b.rank ? 1 : -1;
+      //   }
+      //   return a.rank < b.rank ? 1 : -1;
+      // })
     } else if (currentSort === SortType.Token) {
       tokensToDisplay.sort((a: Token, b: Token) => {
         if (currentSortDirection == SortDirection.Ascending) {
@@ -308,7 +311,7 @@ function Home() {
     currentSort,
     currentSortDirection,
     settingsState.filters,
-  ]);
+  ])
 
   return (
     <>
@@ -353,7 +356,7 @@ function Home() {
               in volume over the last 24 hours.
             </div>
             <div className="sr-only">
-              ZilStream is currently tracking {tokens.length} tokens. Popular
+              ZilStream is currently tracking {tokenState.tokens.length} tokens. Popular
               trends within Zilliqa right now are NFT and DeFi.
             </div>
           </div>
@@ -382,7 +385,7 @@ function Home() {
                   zilToken.market_data.current_supply * selectedCurrency.rate,
                   selectedCurrency.symbol
                 )}`}
-                token={tokens.filter((token: Token) => token.symbol == "ZIL")[0]}
+                token={tokenState.tokens.filter((token: Token) => token.symbol == "ZIL")[0]}
                 rates={rates.filter((rate) => rate.token_id == "1")}
               />
 
@@ -1029,4 +1032,4 @@ function Home() {
   );
 }
 
-export default Home;
+export default Home

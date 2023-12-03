@@ -9,11 +9,11 @@ import { Rate } from '~/src/types/rate'
 import { cryptoFormat } from '~/src/utils/format'
 
 const Chart = dynamic(
-  () => import('~/src/components/Chart'),
+  () => import('~/src/components/Chart').then((mod) => mod.Chart),
   { ssr: false }
 )
 
-function NftCollections() {
+const NftCollections = () => {
   const collectionState = useSelector(state => state.collection)
   const [rates, setRates] = useState<Rate[]>([])
 
