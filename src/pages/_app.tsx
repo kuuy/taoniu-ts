@@ -10,9 +10,10 @@ import {store} from '~/src/store/store'
 import createEmotionCache from '~/src/utils/create-emotion-cache'
 import Layout from '~/src/layouts/default'
 
-import 'tailwindcss/tailwind.css'
 import '~/src/styles/globals.css'
 import '~/src/styles/toastify.css'
+import {TokenProvider,TokenConsumer} from '~/src/contexts/token-context'
+import {SplashScreen} from '~/src/components/splash-screen'
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode
@@ -28,9 +29,15 @@ export default function App({ Component, pageProps }: AppPropsWithLayout) {
   return (
     <CacheProvider value={emotionCache}>
       <ReduxProvider store={store}>
-        <ThemeProvider defaultTheme="system" enableSystem={true} attribute="class">
-          {getLayout(<Component {...pageProps} />)}
-        </ThemeProvider>
+        <TokenProvider>
+          <TokenConsumer>
+            {(token) => (
+              <ThemeProvider defaultTheme="system" enableSystem={true} attribute="class">
+                {token.initialized ? getLayout(<Component {...pageProps} />) : <SplashScreen/>}
+              </ThemeProvider>
+            )}
+          </TokenConsumer>
+        </TokenProvider>
       </ReduxProvider>
     </CacheProvider>
   )

@@ -10,7 +10,6 @@ import { Token } from '~/src/types/token'
 import { useSelector } from '~/src/store/store'
 import dayjs from 'dayjs'
 import { Star } from 'react-feather'
-// import { TokenActionTypes } from '~/src/store/token/actions'
 import { useTheme } from 'next-themes'
 import InlineChange from './InlineChange'
 import {toBigNumber} from '~/src/utils/useMoneyFormatter'
@@ -35,12 +34,11 @@ const TokenRow = (props: Props) => {
   const selectedCurrency: Currency = currencyState.currencies.find(currency => currency.code === currencyState.selectedCurrency)!
   const settingsState = useSelector(state => state.settings)
   const [isFavorited, setIsFavorited] = useState<boolean>(token.isFavorited)
-  // const dispatch = useDispatch()
   const { resolvedTheme } = useTheme()
 
   const onFavorited = () => {
     const favoritesString = localStorage.getItem('favorites') ?? ''
-    var favorites = favoritesString.split(',')
+    let favorites = favoritesString.split(',')
 
     if (isFavorited) {
       favorites = favorites.filter(address => address != token.address)

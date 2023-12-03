@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { Star, Triangle } from 'react-feather'
 import { useDispatch, useSelector } from '~/src/store/store'
 
@@ -8,12 +8,10 @@ import getRates from '~/src/lib/zilstream/getRates'
 
 import {Currency} from '~/src/types/currency'
 import {Token} from '~/src/types/token'
-import {default as tokenThunks}  from '~/src/thunks/token'
 import { ListType } from '~/src/types/list'
 import { SortType, SortDirection } from '~/src/types/list'
 import { Rate } from '~/src/types/rate'
 import { compactFormat, currencyFormat } from '~/src/utils/format'
-import { useInterval } from '~/src/utils/interval'
 
 import { ZIL_ADDRESS } from '~/src/constants'
 import RatesBlock from '~/src/components/ChartBlock'
@@ -28,8 +26,7 @@ import SponsorBlock from '~/src/components/SponsorBlock'
 import {toBigNumber} from '~/src/utils/useMoneyFormatter'
 
 function Home() {
-  const dispatch = useDispatch()
-  const [rates, setRates] = useState<Rate[]>([])
+  const [rates, setRates] = useState<Rate[]|null>(null)
   const tokenState = useSelector((state) => state.token)
   const currencyState = useSelector((state) => state.currency)
   const settingsState = useSelector((state) => state.settings)
@@ -38,11 +35,28 @@ function Home() {
   const [currentSort, setCurrentSort] = useState<SortType>(SortType.Default)
   const [currentSortDirection, setCurrentSortDirection] = useState<SortDirection>(SortDirection.Ascending)
 
+  const fetchRates = useCallback(
+    async (): Promise<void> => {
+      console.log('fetch rates')
+      try {
+        const result = await getRates()
+        setRates(result)
+      } catch (e) {
+        setRates([])
+      }
+    },
+    [rates]
+  )
+
   useEffect(() => {
-    if (!tokenState.initialized) {
-      dispatch(tokenThunks.initial())
+    if (rates === null) {
+      fetchRates()
     }
-  }, [tokenState])
+    const interval = setInterval(() => {
+      fetchRates()
+    }, 30000)
+    return () => clearInterval(interval)
+  }, [rates])
 
   const marketCap = tokenState.tokens.reduce((sum: number, current: Token) => {
     return sum + current.market_data.market_cap_zil;
@@ -55,27 +69,7 @@ function Home() {
   const zilToken = tokenState.tokens.filter((token: Token) => token.symbol == "ZIL")[0];
   const selectedCurrency: Currency = currencyState.currencies.find(
     (currency: Currency) => currency.code === currencyState.selectedCurrency
-  )!;
-
-  const fetchRates = async () => {
-    var newRates: Rate[] = [];
-
-    try {
-      newRates = await getRates();
-    } catch (e) {
-      newRates = [];
-    }
-
-    setRates(newRates);
-  }
-
-  useInterval(async () => {
-    fetchRates();
-  }, 30000);
-
-  useEffect(() => {
-    fetchRates()
-  }, [])
+  )!
 
   const aprTokens = tokenState.tokens
     .filter((token: Token) => token.reviewed === true || token.address === ZIL_ADDRESS)
@@ -104,8 +98,6 @@ function Home() {
   };
 
   useEffect(() => {
-    if (!tokenState.initialized) return;
-
     let tokensToDisplay: Token[]
 
     if (currentList == ListType.Favorites) {
@@ -138,12 +130,6 @@ function Home() {
       tokensToDisplay.sort((a: Token, b: Token) => {
         return 0
       })
-      // tokensToDisplay.sort((a: Token, b: Token) => {
-      //   if (currentSortDirection == SortDirection.Ascending) {
-      //     return a.rank > b.rank ? 1 : -1;
-      //   }
-      //   return a.rank < b.rank ? 1 : -1;
-      // })
     } else if (currentSort === SortType.Token) {
       tokensToDisplay.sort((a: Token, b: Token) => {
         if (currentSortDirection == SortDirection.Ascending) {
@@ -386,7 +372,7 @@ function Home() {
                   selectedCurrency.symbol
                 )}`}
                 token={tokenState.tokens.filter((token: Token) => token.symbol == "ZIL")[0]}
-                rates={rates.filter((rate) => rate.token_id == "1")}
+                rates={(rates??[]).filter((rate) => rate.token_id == "1")}
               />
 
               <Link href="/exchanges">
@@ -1001,17 +987,17 @@ function Home() {
                   token={token}
                   rank={index + 1}
                   index={index}
-                  rates={rates.filter(
+                  rates={(rates??[]).filter(
                     (rate) => rate.token_id == token.id.toString()
                   )}
                   isLast={
-                    displayedTokens.filter((token) => token.symbol != "ZIL")
+                    displayedTokens.filter((token) => token.symbol !== 'ZIL')
                       .length ===
                     index + 1
                   }
                   showAPR={currentList === ListType.APR}
                 />
-              );
+              )
             })}
 
           {tokenState.initialized === false && <LoadingTokenRows />}
@@ -1032,4 +1018,4 @@ function Home() {
   );
 }
 
-export default Home
+export default Home;

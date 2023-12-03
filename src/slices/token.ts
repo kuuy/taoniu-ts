@@ -6,7 +6,7 @@ type InitialAction = PayloadAction<Token[]>
 const initialState: TokenState = {
   initialized: false,
   zilRate: 0,
-  tokens: []
+  tokens: [],
 }
 
 const reducers = {
